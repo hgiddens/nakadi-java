@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>nakadi-java by dehora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">nakadi-java</h1>
+      <h2 class="project-tagline">🌀 A client library for the Nakadi Event Broker</h2>
+      <a href="https://github.com/dehora/nakadi-java" class="btn">View on GitHub</a>
+      <a href="https://github.com/dehora/nakadi-java/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/dehora/nakadi-java/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h2>
+<a id="welcome" class="anchor" href="#welcome" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome!</h2>
+
+<p>Nakadi-java provides an implementation of the Nakadi Event Broker API. </p>
+
+<ul>
+<li><p><strong>Straightforward</strong>. An easy to use client suitable for direct use, or as an engine for higher level abstractions.</p></li>
+<li><p><strong>Complete</strong>. A full reference implementation of the Nakadi API for producers and consumers.</p></li>
+<li><p><strong>Robust</strong>. HTTP request/responses and consumer stream handling recovers from common connection and server problems.</p></li>
+<li><p><strong>Minimal Dependencies</strong>. No dependency on heavyweight frameworks or libraries, the sole dependency is on the SLF4J API.</p></li>
+<li><p><strong>Operations Friendly</strong>. Error handling, logging and instrumentation are given the same importance as functionality.</p></li>
+</ul>
+
+<hr>
+
+<h2>
+<a id="using-the-client" class="anchor" href="#using-the-client" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Using the Client</h2>
+
+<p>Creating a client is as simple as: </p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-smi">NakadiClient</span> client <span class="pl-k">=</span> <span class="pl-smi">NakadiClient</span><span class="pl-k">.</span>newBuilder()
+  .baseURI(<span class="pl-s"><span class="pl-pds">"</span>http://localhost:9080<span class="pl-pds">"</span></span>)
+  .build();</pre></div>
+
+<p>With that you can post type safe events:</p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce1 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
+  .metadata(<span class="pl-k">new</span> <span class="pl-smi">EventMetadata</span>())
+  .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
+  .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>24<span class="pl-pds">"</span></span>));
+
+<span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce2 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
+  .metadata(<span class="pl-k">new</span> <span class="pl-smi">EventMetadata</span>())
+  .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
+  .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>24<span class="pl-pds">"</span></span>));
+
+<span class="pl-smi">Response</span> batch <span class="pl-k">=</span> resource<span class="pl-k">.</span>send(<span class="pl-s"><span class="pl-pds">"</span>priority-requisitions<span class="pl-pds">"</span></span>, dce1, dce2);</pre></div>
+
+<p>And consume events from the stream with just a few lines of code:</p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-smi">StreamConfiguration</span> configuration <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">StreamConfiguration</span>()
+    .subscriptionId(<span class="pl-s"><span class="pl-pds">"</span>27302800-bc68-4026-a9ff-8d89372f8473<span class="pl-pds">"</span></span>);
+
+<span class="pl-smi">StreamProcessor</span> processor <span class="pl-k">=</span> client<span class="pl-k">.</span>resources()<span class="pl-k">.</span>streamBuilder(configuration)
+    .streamObserverFactory(<span class="pl-k">new</span> <span class="pl-smi">LoggingStreamObserverProvider</span>())
+    .build();
+
+processor<span class="pl-k">.</span>start();</pre></div>
+
+<p>See the <a href="https://github.com/dehora/nakadi-java#nakadi-java">Readme</a> for more details and examples.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/dehora/nakadi-java">nakadi-java</a> is maintained by <a href="https://github.com/dehora">dehora</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
