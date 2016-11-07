@@ -44,17 +44,17 @@
 
 <p>With that you can post type safe events:</p>
 
-<div class="highlight highlight-source-java"><pre><span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce1 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
+<div class="highlight highlight-source-java"><pre><span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce23 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
+  .metadata(<span class="pl-k">new</span> <span class="pl-smi">EventMetadata</span>())
+  .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
+  .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>23<span class="pl-pds">"</span></span>));
+
+<span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce24 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
   .metadata(<span class="pl-k">new</span> <span class="pl-smi">EventMetadata</span>())
   .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
   .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>24<span class="pl-pds">"</span></span>));
 
-<span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span> dce2 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">DataChangeEvent&lt;<span class="pl-smi">PriorityRequisition</span>&gt;</span>()
-  .metadata(<span class="pl-k">new</span> <span class="pl-smi">EventMetadata</span>())
-  .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
-  .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>24<span class="pl-pds">"</span></span>));
-
-<span class="pl-smi">Response</span> batch <span class="pl-k">=</span> resource<span class="pl-k">.</span>send(<span class="pl-s"><span class="pl-pds">"</span>priority-requisitions<span class="pl-pds">"</span></span>, dce1, dce2);</pre></div>
+<span class="pl-smi">Response</span> batch <span class="pl-k">=</span> resource<span class="pl-k">.</span>send(<span class="pl-s"><span class="pl-pds">"</span>priority-requisitions<span class="pl-pds">"</span></span>, dce23, dce24);</pre></div>
 
 <p>And consume events from the stream with just a few lines of code:</p>
 
