@@ -55,7 +55,7 @@
   .op(<span class="pl-smi">DataChangeEvent</span><span class="pl-k">.</span><span class="pl-smi">Op</span><span class="pl-k">.</span><span class="pl-smi">C</span>)
   .data(<span class="pl-k">new</span> <span class="pl-smi">PriorityRequisition</span>(<span class="pl-s"><span class="pl-pds">"</span>24<span class="pl-pds">"</span></span>));
 
-<span class="pl-smi">Response</span> batch <span class="pl-k">=</span> client<span class="pl-k">.</span>resources()<span class="pl-k">.</span>events()<span class="pl-k">.</span>send(<span class="pl-s"><span class="pl-pds">"</span>priority-requisitions<span class="pl-pds">"</span></span>, dce23, dce24);</pre></div>
+<span class="pl-smi">Response</span> batch <span class="pl-k">=</span> client<span class="pl-k">.</span>resources()<span class="pl-k">.</span>events()<span class="pl-k">.</span>send(<span class="pl-s"><span class="pl-pds">"</span>priority-requisitions<span class="pl-pds">"</span></span>, Lists.newArrayList(dce23, dce24);</pre></div>
 
 <p>And consume events from the stream with just a few lines of code:</p>
 
