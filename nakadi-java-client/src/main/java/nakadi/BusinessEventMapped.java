@@ -16,7 +16,7 @@ import java.util.Objects;
  * the data on the wire.
  * </p>
  */
-public class BusinessEventMapped<T> implements Event<T> {
+public class BusinessEventMapped<T> implements Event<T>, FlowId {
 
   private T data;
   private EventMetadata metadata;
@@ -84,4 +84,9 @@ public class BusinessEventMapped<T> implements Event<T> {
         ", data=" + data +
         '}';
   }
+
+    @Override
+    public String flowId() {
+        return metadata().flowId();
+    }
 }

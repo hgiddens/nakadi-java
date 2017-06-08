@@ -7,9 +7,10 @@ import java.util.Objects;
  *
  * @param <T> the generic type of the custom data for the event
  */
-public class DataChangeEvent<T> implements Event<T> {
+public class DataChangeEvent<T> implements Event<T>, FlowId {
 
   private T data;
+  // this defaults to null, helpfully
   private EventMetadata metadata;
   private String dataType;
   private Op dataOp;
@@ -105,4 +106,9 @@ public class DataChangeEvent<T> implements Event<T> {
   public enum Op {
     C, U, D, S
   }
+
+    @Override
+    public String flowId() {
+        return metadata().flowId();
+    }
 }

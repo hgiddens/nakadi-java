@@ -10,11 +10,8 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
 import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -26,6 +23,7 @@ import org.mockito.Matchers;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -286,6 +284,61 @@ public class EventResourceRealTest {
       after();
     }
   }
+
+  @Test
+  public void coherentFlowIdIncludedInRequestHeader() throws Exception {
+      final NakadiClient client = spy(NakadiClient.newBuilder()
+              .baseURI("http://localhost:" + MOCK_SERVER_PORT)
+              .build());
+      final EventResource resource = client.resources().events();
+      final String flowId = "flow id";
+      final EventMetadata metadata = new EventMetadata().flowId(flowId);
+      final List<BusinessEventMapped<BusinessPayload>> events = Arrays.asList(
+              new BusinessEventMapped<BusinessPayload>().metadata(metadata).data(new BusinessPayload("id", "a", "b")),
+              new BusinessEventMapped<BusinessPayload>().metadata(metadata).data(new BusinessPayload("id", "c", "d"))
+      );
+
+      try {
+          before();
+
+          server.enqueue(new MockResponse().setResponseCode(200));
+          resource.send("be-1-1479125860", events);
+          final RecordedRequest request = server.takeRequest();
+          assertEquals(flowId, request.getHeader("x-flow-id"));
+      } finally {
+          after();
+      }
+  }
+
+    @Test
+    public void incoherentFlowIdNotIncludedInRequestHeader() throws Exception {
+        final NakadiClient client = spy(NakadiClient.newBuilder()
+                .baseURI("http://localhost:" + MOCK_SERVER_PORT)
+                .build());
+        final EventResource resource = client.resources().events();
+        final String flowId1 = "flow id 1";
+        final String flowId2 = "flow id 2";
+        final List<BusinessEventMapped<BusinessPayload>> events = Arrays.asList(
+                new BusinessEventMapped<BusinessPayload>()
+                        .metadata(new EventMetadata().flowId(flowId1))
+                        .data(new BusinessPayload("id", "a", "b")),
+                new BusinessEventMapped<BusinessPayload>()
+                        .metadata(new EventMetadata().flowId(flowId2))
+                        .data(new BusinessPayload("id", "c", "d"))
+        );
+
+        try {
+            before();
+
+            server.enqueue(new MockResponse().setResponseCode(200));
+            resource.send("be-1-1479125860", events);
+            final RecordedRequest request = server.takeRequest();
+            assertNotEquals(flowId1, request.getHeader("x-flow-id"));
+            assertNotEquals(flowId2, request.getHeader("x-flow-id"));
+        } finally {
+            after();
+        }
+    }
 
   @Test
   public void sendWithScope() {

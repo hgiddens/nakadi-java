@@ -6,10 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -71,8 +68,7 @@ public class EventResourceReal implements EventResource {
     return this;
   }
 
-  @Override
-  public final <T> Response send(String eventTypeName, Collection<T> events) {
+  public final <T> Response send(String eventTypeName, Collection<T> events, final String explicitFlowId) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(events, "Please provide one or more events");
 
@@ -85,19 +81,32 @@ public class EventResourceReal implements EventResource {
 
     if (collect.get(0).event() instanceof String) {
       return sendUsingSupplier(eventTypeName,
-          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8));
+          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8),
+              explicitFlowId);
     } else {
-      return send(collect);
+      return send(collect, explicitFlowId);
     }
   }
 
   @Override
-  public <T> Response send(String eventTypeName, T event) {
+  public <T> Response send(String eventTypeName, Collection<T> events) {
+      NakadiException.throwNonNull(events, "Please provide one or more events");
+      final String explicitFlowId = flowIdForEvents(events);
+      return send(eventTypeName, events, explicitFlowId);
+  }
+
+  @Override
+  public <T> Response send(final String eventTypeName, final T event) {
+      final String explicitFlowId = flowIdForEvents(Collections.singletonList(event));
+      return send(eventTypeName, event, explicitFlowId);
+  }
+
+  public <T> Response send(final String eventTypeName, final T event, final String explicitFlowId) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(event, "Please provide an event");
 
     if (event instanceof String) {
-      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8));
+      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8), explicitFlowId);
     } else {
       ArrayList<T> events = new ArrayList<>(1);
       Collections.addAll(events, event);
@@ -120,10 +129,15 @@ public class EventResourceReal implements EventResource {
     return new BatchItemResponseCollection(items, LINKS_SENTINEL);
   }
 
-  private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier) {
+  private Response sendUsingSupplier(final String eventTypeName, final ContentSupplier supplier, final String explicitFlowId) {
     return timed(() -> {
           ResourceOptions options =
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
+
+          if (explicitFlowId != null) {
+              options.flowId(explicitFlowId);
+          }
+
           // todo: close
           return client.resourceProvider()
               .newResource()
@@ -135,7 +149,7 @@ public class EventResourceReal implements EventResource {
         1);
   }
 
-  private <T> Response send(List<EventRecord<T>> events) {
+  private <T> Response send(final List<EventRecord<T>> events, final String explicitFlowId) {
     NakadiException.throwNonNull(events, "Please provide one or more event records");
 
     String topic = events.get(0).eventType();
@@ -146,6 +160,11 @@ public class EventResourceReal implements EventResource {
     return timed(() -> {
           ResourceOptions options =
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
+
+          if (explicitFlowId != null) {
+              options.flowId(explicitFlowId);
+          }
+
           return client.resourceProvider()
               .newResource()
               .retryPolicy(retryPolicy)
@@ -158,6 +177,23 @@ public class EventResourceReal implements EventResource {
 
   @VisibleForTesting <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
     return EventMappedSupport.mapEventRecordToSerdes(er);
+  }
+
+  private static String flowIdForEvents(final Collection<?> events) {
+      String current = null;
+      for (final Object event : events) {
+          if (!(event instanceof FlowId)) {
+              continue;
+          }
+          final String now = ((FlowId)event).flowId();
+
+          if (current != null && now != null && !current.equals(now)) {
+              return null;
+          } else if (current == null) {
+              current = now;
+          }
+      }
+      return current;
   }
 
   private ResourceOptions options() {
